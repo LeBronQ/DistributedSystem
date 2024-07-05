@@ -5,8 +5,7 @@ go 1.22.4
 require (
 	github.com/LeBronQ/Mobility v0.0.0-20240327080122-b9b150454efa
 	github.com/LeBronQ/RadioChannelModel v0.0.0-20240405072416-56d8240334dd
-	github.com/LeBronQ/kdtree v1.0.1
-	github.com/LeBronQ/tasks v1.0.4
+	github.com/LeBronQ/tasks v1.0.8
 	github.com/hashicorp/consul/api v1.28.3
 	github.com/hibiken/asynq v0.24.1
 )
@@ -16,6 +15,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.16.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gonum/blas v0.0.0-20181208220705-f22b278b28ac // indirect
 	github.com/gonum/floats v0.0.0-20181209220543-c233463c7e82 // indirect
@@ -34,8 +34,6 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/kyroy/kdtree v0.0.0-20200419114247-70830f883f1d // indirect
-	github.com/kyroy/priority-queue v0.0.0-20180327160706-6e21825e7e0c // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

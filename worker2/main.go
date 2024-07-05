@@ -22,9 +22,7 @@ import (
 )
 
 const (
-	NodeNum        = 10
-	StartIndex     = 0
-	EndIndex       = NodeNum / 2
+	NodeNum        = 20
 	consul_address = "127.0.0.1:8500"
 	redisAddr      = "127.0.0.1:6379"
 )
@@ -108,7 +106,7 @@ func GenerateNodes() []*Node {
 			PowerInDbm: 20,
 		}
 		n := &Node{
-			ID:      int64(i),
+			ID:      int64(i+10),
 			MobNode: *node,
 			WNode:   *wirelessNode,
 			Range:   2000.0,
@@ -190,7 +188,7 @@ func ChannelRequest(Tx RadioChannelModel.WirelessNode, Rx RadioChannelModel.Wire
 }
 
 func UpdateNeighborsAndCalculatePLR(tree *kdtree.KDTree, ctx context.Context) {
-	for i := StartIndex; i < EndIndex; i++ {
+	for i := 0; i < NodeNum; i++ {
 		node := NodeArr[i]
 		distance := node.Range
 		center := points.NewPoint([]float64{node.MobNode.Pos.X, node.MobNode.Pos.Y, node.MobNode.Pos.Z}, TreeNodeData{ID: node.ID})
@@ -228,9 +226,6 @@ func HandleKDtreeDeliveryTask(ctx context.Context, t *asynq.Task) error {
 	}
 	var nodes []kdtree.Point
 	for _, n := range payload.TreeNodes {
-		NodeArr[n.ID].MobNode.Pos.X = n.Coordinates[0]
-		NodeArr[n.ID].MobNode.Pos.Y = n.Coordinates[1]
-		NodeArr[n.ID].MobNode.Pos.Z = n.Coordinates[2]
 		p := points.NewPoint(n.Coordinates, TreeNodeData{ID: n.ID})
 		nodes = append(nodes, p)
 	}

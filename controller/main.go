@@ -8,18 +8,19 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"context"
 
 	"github.com/LeBronQ/Mobility"
 	"github.com/LeBronQ/RadioChannelModel"
 	"github.com/LeBronQ/tasks"
 	"github.com/hibiken/asynq"
+	"github.com/go-redis/redis/v8"
 
-	//"sync"
 	consulapi "github.com/hashicorp/consul/api"
 )
 
 const (
-	NodeNum        = 100
+	NodeNum        = 10
 	consul_address = "127.0.0.1:8500"
 	redisAddr      = "127.0.0.1:6379"
 )
@@ -189,6 +190,13 @@ var NodeArr []*Node
 func main() {
 	NodeArr = GenerateNodes()
 	client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
+	
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: redisAddr, 
+	})
+	pubsub := redisClient.Subscribe(context.Background(), "task_notification")
+	defer pubsub.Close()
+	
 	defer client.Close()
 
 	deli_nodes := []tasks.DeliveryPoint{}
@@ -204,9 +212,13 @@ func main() {
 		log.Fatalf("could not create task: %v", err)
 	}
 
-	info, err := client.Enqueue(task)
+	//info, err := client.Enqueue(task)
+	_, err = client.Enqueue(task)
 	if err != nil {
 		log.Fatalf("could not enqueue task: %v", err)
 	}
-	log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
+	//log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
+	
+	_ = pubsub.Channel()
+	
 }
