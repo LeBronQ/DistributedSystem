@@ -15,14 +15,18 @@ import (
 	"github.com/LeBronQ/tasks"
 	"github.com/hibiken/asynq"
 	"github.com/go-redis/redis/v8"
-
+	"github.com/spf13/viper"
+	
 	consulapi "github.com/hashicorp/consul/api"
 )
 
 const (
-	NodeNum        = 10
 	consul_address = "127.0.0.1:8500"
 	redisAddr      = "127.0.0.1:6379"
+)
+
+var (
+	NodeNum        = 100
 )
 
 var mobility_se = Discovery("Default_MobilityModel")
@@ -188,6 +192,15 @@ func UpdatePosition(NodeArr []*Node) {
 var NodeArr []*Node
 
 func main() {
+	viper.SetConfigFile("../config.yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("读取配置文件失败:", err)
+		return
+	}
+	NodeNum = viper.GetInt("NodeNum")
+	WorkerNum := viper.GetInt("WorkerNum")
+	
 	NodeArr = GenerateNodes()
 	client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 	
@@ -211,14 +224,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not create task: %v", err)
 	}
-
-	//info, err := client.Enqueue(task)
-	_, err = client.Enqueue(task)
-	if err != nil {
-		log.Fatalf("could not enqueue task: %v", err)
+	
+	for i := 1; i <= WorkerNum; i++ {
+		queue_name := fmt.Sprintf("queue%d", i)
+		_, err = client.Enqueue(task, asynq.Queue(queue_name))
+		if err != nil {
+			log.Fatalf("could not enqueue task: %v", err)
+		}
 	}
 	//log.Printf("enqueued task: id=%s queue=%s", info.ID, info.Queue)
 	
-	_ = pubsub.Channel()
+	worker_num := 2
+	
+	msg := pubsub.Channel()
+	finish_cnt := 0
+	for _ = range msg {
+		finish_cnt++
+		if finish_cnt == worker_num {
+			break
+		}
+	}
 	
 }

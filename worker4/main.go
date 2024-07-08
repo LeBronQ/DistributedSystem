@@ -17,16 +17,20 @@ import (
 	"github.com/LeBronQ/tasks"
 	"github.com/hibiken/asynq"
 	"github.com/go-redis/redis/v8"
+	"github.com/spf13/viper"
 
 	consulapi "github.com/hashicorp/consul/api"
 )
 
 const (
-	NodeNum        = 10
-	StartIndex     = 0
-	EndIndex       = NodeNum / 2
 	consul_address = "127.0.0.1:8500"
 	redisAddr      = "127.0.0.1:6379"
+)
+
+var (
+	NodeNum        = 100
+	StartIndex     = 0
+	EndIndex       = NodeNum / 2
 )
 
 var channel_se = Discovery("Default_ChannelModel")
@@ -190,7 +194,9 @@ func ChannelRequest(Tx RadioChannelModel.WirelessNode, Rx RadioChannelModel.Wire
 }
 
 func UpdateNeighborsAndCalculatePLR(tree *kdtree.KDTree, ctx context.Context) {
+	cnt := 0
 	for i := StartIndex; i < EndIndex; i++ {
+		cnt++
 		node := NodeArr[i]
 		distance := node.Range
 		center := points.NewPoint([]float64{node.MobNode.Pos.X, node.MobNode.Pos.Y, node.MobNode.Pos.Z}, TreeNodeData{ID: node.ID})
@@ -207,6 +213,7 @@ func UpdateNeighborsAndCalculatePLR(tree *kdtree.KDTree, ctx context.Context) {
 		}
 		//fmt.Printf("%v\n", graph[i])
 	}
+	fmt.Println("cnt:", cnt)
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisAddr, 
 	})
@@ -243,18 +250,27 @@ func HandleKDtreeDeliveryTask(ctx context.Context, t *asynq.Task) error {
 var NodeArr []*Node
 
 func main() {
+	viper.SetConfigFile("../config.yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("读取配置文件失败:", err)
+		return
+	}
+	NodeNum = viper.GetInt("NodeNum")
+	WorkerNum := viper.GetInt("WorkerNum")
+	StartIndex = NodeNum / WorkerNum * 3
+	EndIndex = NodeNum / WorkerNum * 4
+	
 	NodeArr = GenerateNodes()
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisAddr},
 		asynq.Config{
 			// Specify how many concurrent workers to use
-			Concurrency: 10,
+			Concurrency: 1,
 			// Optionally specify multiple queues with different priority.
 			Queues: map[string]int{
-				"critical": 6,
-				"default":  3,
-				"low":      1,
-			},
+                		"queue4": 6,
+            		},
 			// See the godoc for other configuration options
 		},
 	)

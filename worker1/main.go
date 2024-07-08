@@ -221,7 +221,7 @@ func UpdateNeighborsAndCalculatePLR(tree *kdtree.KDTree, ctx context.Context) {
 }
 
 func TaskFinishInform(redisClient *redis.Client, ctx context.Context) error {
-	err := redisClient.Publish(ctx, "task_notification", fmt.Sprintf("Task 2 completed")).Err()
+	err := redisClient.Publish(ctx, "task_notification", fmt.Sprintf("Task 1 completed")).Err()
 	if err != nil {
 		return err
 	}
@@ -258,8 +258,7 @@ func main() {
 	}
 	NodeNum = viper.GetInt("NodeNum")
 	WorkerNum := viper.GetInt("WorkerNum")
-	StartIndex = NodeNum / WorkerNum
-	EndIndex = NodeNum / WorkerNum * 2
+	EndIndex = NodeNum / WorkerNum
 	
 	NodeArr = GenerateNodes()
 	srv := asynq.NewServer(
@@ -269,7 +268,7 @@ func main() {
 			Concurrency: 1,
 			// Optionally specify multiple queues with different priority.
 			Queues: map[string]int{
-                		"queue2": 6,
+                		"queue1": 6,
             		},
 			// See the godoc for other configuration options
 		},
